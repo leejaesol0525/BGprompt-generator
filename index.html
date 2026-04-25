@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+
+<title>게임 배경 프롬포트 생성기</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+
+<style>
+body {
+  font-family: 'Pretendard', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: white;
+  padding: 40px;
+}
+
+.container {
+  max-width: 720px;
+  margin: auto;
+}
+
+h1 {
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.description {
+  margin: 10px 0 20px;
+  color: #cbd5f5;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.card {
+  background: rgba(255,255,255,0.05);
+  padding: 20px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+}
+
+/* 🔥 여기만 수정됨 */
+select, input {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+button {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #6366f1;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.result-box {
+  margin-top: 15px;
+  padding: 15px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 10px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111827;
+  padding: 10px 20px;
+  border-radius: 8px;
+  opacity: 0;
+  transition: 0.3s;
+  z-index: 9999;
+}
+
+.toast.show {
+  opacity: 1;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>게임 배경<br>프롬포트 생성기</h1>
+
+<div class="description">
+탭별 항목을 선택하여 '프롬포트 생성'을 누르고,<br>
+'복사하기' 버튼을 통해 생성형 AI에 프롬포트를 전달하세요.<br>
+파이어플라이 기준 '콘텐츠 유형'은 아트, '시각적 강도'는 50%로 설정하면<br>
+더 좋은 결과를 얻을 수 있습니다.
+</div>
+
+<div class="card">
+
+<select id="style">
+  <option value="2d">2D 원화 스타일</option>
+  <option value="3d">3D 렌더 스타일</option>
+</select>
+
+<select id="view">
+  <option value="">시점 선택</option>
+  <option value="front view">정면 시점</option>
+  <option value="top view">탑뷰</option>
+  <option value="low angle">로우 앵글</option>
+  <option value="high angle">하이 앵글</option>
+  <option value="isometric view">아이소메트릭</option>
+  <option value="wide landscape view">와이드 전경</option>
+</select>
+
+<select id="background">
+  <option value="">배경 선택</option>
+  <option value="forest">숲</option>
+  <option value="grassland">초원</option>
+  <option value="village">마을</option>
+  <option value="castle">성</option>
+  <option value="cave">동굴</option>
+  <option value="desert">사막</option>
+  <option value="snow field">설원</option>
+  <option value="lake">호수</option>
+  <option value="ruins">유적</option>
+  <option value="mountain">산</option>
+  <option value="sky">창공 (구름)</option>
+  <option value="space">우주</option>
+  <option value="holy hall">신성한 성전</option>
+  <option value="mansion interior">대저택 내부</option>
+</select>
+
+<select id="time">
+  <option value="">시간 선택</option>
+  <option value="daytime">낮</option>
+  <option value="night">밤</option>
+</select>
+
+<select id="weather">
+  <option value="">날씨</option>
+  <option value="clear">맑음</option>
+  <option value="cloudy">흐림</option>
+  <option value="rain">비</option>
+  <option value="snow">눈</option>
+  <option value="fog">안개</option>
+  <option value="storm">폭풍</option>
+</select>
+
+<select id="mood">
+  <option value="">분위기</option>
+  <option value="mystical">신비로운</option>
+  <option value="dark">어두운</option>
+  <option value="calm">평온한</option>
+  <option value="tense">긴장감</option>
+  <option value="dreamy">몽환적</option>
+</select>
+
+<select id="intensity">
+  <option value="light">강도: 약</option>
+  <option value="medium">강도: 중</option>
+  <option value="heavy">강도: 강</option>
+</select>
+
+<select id="color">
+  <option value="">색감 선택</option>
+  <option value="warm tone">따뜻한 색감</option>
+  <option value="cool tone">차가운 색감</option>
+  <option value="dark tone">어두운 색감</option>
+  <option value="natural color">자연스러운 색감</option>
+</select>
+
+<input id="extra" placeholder="추가 키워드 입력">
+
+<button onclick="generatePrompt()">프롬포트 생성</button>
+<button onclick="copyPrompt()">📋 복사하기</button>
+
+<div id="result" class="result-box"></div>
+
+</div>
+
+</div>
+
+<div id="toast" class="toast">복사가 완료되었습니다</div>
+
+<script>
+
+const base2D = "fantasy illustration background, painterly concept art, highly detailed environment, soft natural lighting, atmospheric perspective, rich color depth, layered composition";
+const base3D = "realistic 3D environment, cinematic lighting, ultra detailed textures";
+
+const environmentDetails = {
+  forest: "dense forest, layered trees, foliage, light rays, fog",
+  grassland: "open grassland, flowing grass, wide field, wind",
+  village: "fantasy village, houses, pathways, warm lights",
+  castle: "large castle, stone architecture, depth, shadows",
+  cave: "deep cave, wet rocks, reflections, darkness",
+  desert: "sand dunes, wind patterns, heat haze",
+  "snow field": "snow layers, cold air, soft light reflection",
+  lake: "water reflection, ripples, calm surface",
+  ruins: "ancient ruins, broken structures, debris",
+  mountain: "rocky cliffs, height, fog",
+  sky: "dramatic sky, dense clouds, sharp cloud shapes, swirling clouds, strong wind flow, volumetric clouds",
+  space: "outer space, stars, nebula, cosmic dust, galaxy background",
+  "holy hall": "grand sacred hall, white marble interior, towering pillars, glowing light rays, divine atmosphere, intricate architecture, holy altar centerpiece",
+  "mansion interior": "luxury mansion interior, grand hall, elegant furniture, chandeliers, polished floor, warm lighting, detailed interior design"
+};
+
+const weatherMap = {
+  rain: { light: "light rain", medium: "steady rain, wet ground reflections", heavy: "heavy rain, storm, dramatic lighting" },
+  snow: { light: "light snow", medium: "falling snow", heavy: "heavy snowstorm" },
+  fog: { light: "light fog", medium: "dense fog", heavy: "thick fog" },
+  storm: { light: "distant storm clouds", medium: "stormy sky", heavy: "violent storm, lightning" }
+};
+
+const moodMap = {
+  mystical: "mystical atmosphere, glowing light",
+  dark: "dark tone, shadow heavy",
+  calm: "peaceful atmosphere, soft light",
+  tense: "dramatic tension, strong lighting contrast",
+  dreamy: "dreamlike atmosphere, soft glow"
+};
+
+function generatePrompt() {
+  const style = document.getElementById("style").value;
+  const view = document.getElementById("view").value;
+  const bg = document.getElementById("background").value;
+  const time = document.getElementById("time").value;
+  const weather = document.getElementById("weather").value;
+  const mood = document.getElementById("mood").value;
+  const intensity = document.getElementById("intensity").value;
+  const color = document.getElementById("color").value;
+  const extra = document.getElementById("extra").value;
+
+  const base = style === "2d" ? base2D : base3D;
+  let env = bg && time ? `${bg} ${time}` : bg;
+  let weatherDetail = weatherMap[weather] ? weatherMap[weather][intensity] : "";
+
+  const prompt = [
+    base, view, env,
+    environmentDetails[bg],
+    weatherDetail,
+    moodMap[mood],
+    color,
+    extra,
+    "no character",
+    "no text",
+    "environment only",
+    "ultra detailed",
+    "sharp focus"
+  ].filter(Boolean).join(", ");
+
+  document.getElementById("result").innerText = prompt;
+}
+
+function copyPrompt() {
+  const text = document.getElementById("result").innerText;
+  if (!text) return;
+
+  navigator.clipboard.writeText(text);
+
+  const toast = document.getElementById("toast");
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 1500);
+}
+
+</script>
+
+</body>
+</html>
