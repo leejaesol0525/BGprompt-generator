@@ -10,75 +10,103 @@
 <style>
 body {
   font-family: 'Pretendard', sans-serif;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  color: white;
+  background: #f5f5f7;
+  color: #1d1d1f;
   padding: 40px;
 }
 
 .container {
-  max-width: 720px;
+  max-width: 760px;
   margin: auto;
 }
 
 h1 {
-  font-size: 38px;
-  font-weight: 900;
-  line-height: 1.3;
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  color: #111;
 }
 
 .description {
-  margin: 10px 0 20px;
-  color: #cbd5f5;
+  margin: 12px 0 24px;
+  color: #6e6e73;
   font-size: 14px;
   line-height: 1.6;
 }
 
+/* 카드 */
 .card {
-  background: rgba(255,255,255,0.05);
-  padding: 20px;
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 18px;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
 }
 
-/* 🔥 여기만 수정됨 */
+/* 입력 */
 select, input {
   width: 100%;
-  margin-top: 10px;
-  padding: 12px;
+  margin-top: 12px;
+  padding: 12px 14px;
   border-radius: 10px;
-  border: none;
-  font-weight: 600;
+  border: 1px solid #e5e5e5;
+  font-weight: 500;
+  font-size: 14px;
+  background: #fff;
+  color: #1d1d1f;
   box-sizing: border-box;
+  outline: none;
+  transition: 0.2s ease;
 }
 
+select:focus, input:focus {
+  border-color: #0071e3;
+}
+
+/* 버튼 */
 button {
-  margin-top: 10px;
-  padding: 12px;
+  margin-top: 12px;
+  padding: 12px 14px;
   border-radius: 10px;
   border: none;
-  background: #6366f1;
+  background: #1f5eff; /* 🔵 신뢰감 있는 딥 블루 */
   color: white;
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
+  transition: 0.2s ease;
 }
 
+button:hover {
+  background: #1747cc;
+}
+
+/* 결과 */
 .result-box {
-  margin-top: 15px;
-  padding: 15px;
-  background: rgba(0,0,0,0.4);
-  border-radius: 10px;
+  margin-top: 16px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 12px;
+  border: 1px solid #e5e5e5;
+  color: #333;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
+/* 토스트 */
 .toast {
   position: fixed;
   bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
-  background: #111827;
-  padding: 10px 20px;
-  border-radius: 8px;
+  background: rgba(0,0,0,0.85);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 13px;
   opacity: 0;
-  transition: 0.3s;
+  transition: 0.25s;
   z-index: 9999;
 }
 
@@ -86,6 +114,7 @@ button {
   opacity: 1;
 }
 </style>
+
 </head>
 
 <body>
@@ -178,7 +207,7 @@ button {
 <input id="extra" placeholder="추가 키워드 입력">
 
 <button onclick="generatePrompt()">프롬포트 생성</button>
-<button onclick="copyPrompt()">📋 복사하기</button>
+<button onclick="copyPrompt()">복사하기</button>
 
 <div id="result" class="result-box"></div>
 
@@ -204,28 +233,29 @@ const environmentDetails = {
   lake: "water reflection, ripples, calm surface",
   ruins: "ancient ruins, broken structures, debris",
   mountain: "rocky cliffs, height, fog",
-  sky: "dramatic sky, dense clouds, sharp cloud shapes, swirling clouds, strong wind flow, volumetric clouds",
-  space: "outer space, stars, nebula, cosmic dust, galaxy background",
-  "holy hall": "grand sacred hall, white marble interior, towering pillars, glowing light rays, divine atmosphere, intricate architecture, holy altar centerpiece",
-  "mansion interior": "luxury mansion interior, grand hall, elegant furniture, chandeliers, polished floor, warm lighting, detailed interior design"
+  sky: "dramatic sky, dense clouds, swirling cloud structure, sharp atmospheric motion",
+  space: "outer space, stars, nebula, cosmic dust",
+  "holy hall": "grand sacred hall, white marble architecture, divine lighting, monumental pillars",
+  "mansion interior": "luxury mansion interior, elegant architecture, chandeliers, detailed interior lighting"
 };
 
 const weatherMap = {
-  rain: { light: "light rain", medium: "steady rain, wet ground reflections", heavy: "heavy rain, storm, dramatic lighting" },
+  rain: { light: "light rain", medium: "steady rain, wet ground reflections", heavy: "heavy rain, storm lighting" },
   snow: { light: "light snow", medium: "falling snow", heavy: "heavy snowstorm" },
   fog: { light: "light fog", medium: "dense fog", heavy: "thick fog" },
-  storm: { light: "distant storm clouds", medium: "stormy sky", heavy: "violent storm, lightning" }
+  storm: { light: "distant storm clouds", medium: "storm sky", heavy: "violent storm, lightning" }
 };
 
 const moodMap = {
-  mystical: "mystical atmosphere, glowing light",
-  dark: "dark tone, shadow heavy",
-  calm: "peaceful atmosphere, soft light",
-  tense: "dramatic tension, strong lighting contrast",
-  dreamy: "dreamlike atmosphere, soft glow"
+  mystical: "mystical atmosphere, soft glow",
+  dark: "dark tone, deep shadow contrast",
+  calm: "calm atmosphere, soft lighting",
+  tense: "high tension atmosphere, strong contrast",
+  dreamy: "dreamlike atmosphere, soft diffusion"
 };
 
 function generatePrompt() {
+
   const style = document.getElementById("style").value;
   const view = document.getElementById("view").value;
   const bg = document.getElementById("background").value;
@@ -237,18 +267,20 @@ function generatePrompt() {
   const extra = document.getElementById("extra").value;
 
   const base = style === "2d" ? base2D : base3D;
+
   let env = bg && time ? `${bg} ${time}` : bg;
   let weatherDetail = weatherMap[weather] ? weatherMap[weather][intensity] : "";
 
   const prompt = [
-    base, view, env,
+    base,
+    view,
+    env,
     environmentDetails[bg],
     weatherDetail,
     moodMap[mood],
     color,
     extra,
     "no character",
-    "no text",
     "environment only",
     "ultra detailed",
     "sharp focus"
